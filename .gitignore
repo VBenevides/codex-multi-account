@@ -9,3 +9,4 @@ coverage/
 **/login-staging/
 *.sqlite
 *.sqlite-*
+.agent-work
