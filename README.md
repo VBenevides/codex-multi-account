@@ -21,12 +21,6 @@ with the same configuration, MCP settings, sessions, and skills.
 CMA does not replace Codex chat or model execution. It keeps account
 management and local usage visibility in one small workspace tool.
 
-<p align="center">
-  <img src="assets/usage-mock.png" alt="CMA Usage dashboard with synthetic account and token data" width="960">
-</p>
-
-*The Usage image shows mocked data only.*
-
 ## Why CMA
 
 - **Switch accounts safely.** Sign in profiles once, then use **Select Account**
