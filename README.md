@@ -1,5 +1,12 @@
 # Codex Multi Account
 
+<p align="center">
+  <a href="https://github.com/VBenevides/codex-multi-account/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/VBenevides/codex-multi-account?sort=semver"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/VBenevides/codex-multi-account"></a>
+  <a href="https://github.com/VBenevides/codex-multi-account/actions/workflows/codeql.yml"><img alt="CodeQL" src="https://github.com/VBenevides/codex-multi-account/actions/workflows/codeql.yml/badge.svg"></a>
+  <a href="https://github.com/VBenevides/codex-multi-account/actions/workflows/security.yml"><img alt="Dependency security" src="https://github.com/VBenevides/codex-multi-account/actions/workflows/security.yml/badge.svg"></a>
+</p>
+
 CMA manages local Codex authentication profiles and displays token totals observed in local Codex rollout files. It works alongside the native Codex VS Code extension; it does not implement chat or replace Codex.
 
 ## Security
