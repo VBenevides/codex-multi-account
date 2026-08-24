@@ -1,6 +1,6 @@
 {
-  "name": "codex-multi-account",
-  "displayName": "Codex Multi Account",
+  "name": "cma-codex-multi-account",
+  "displayName": "CMA - Codex Multi Account",
   "description": "Manage local Codex account profiles and observed token usage.",
   "version": "0.1.0",
   "publisher": "vben",
