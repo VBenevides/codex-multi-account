@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VBenevides/codex-multi-account/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/VBenevides/codex-multi-account?sort=semver"></a>
+  <a href="VERSION"><img alt="Version" src="https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2FVBenevides%2Fcodex-multi-account%2Frefs%2Fheads%2Fmain%2FVERSION&search=%28.%2B%29&replace=%241&label=version&color=blue"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/VBenevides/codex-multi-account"></a>
   <a href="https://github.com/VBenevides/codex-multi-account/actions/workflows/codeql.yml"><img alt="CodeQL" src="https://github.com/VBenevides/codex-multi-account/actions/workflows/codeql.yml/badge.svg"></a>
   <a href="https://github.com/VBenevides/codex-multi-account/actions/workflows/security.yml"><img alt="Dependency security" src="https://github.com/VBenevides/codex-multi-account/actions/workflows/security.yml/badge.svg"></a>
@@ -99,7 +99,7 @@ the CMA directory if needed.
 
 ## Development
 
-Version 0.1.0 targets VS Code 1.102 or newer.
+Version 0.1.1 targets VS Code 1.102 or newer.
 
 ```sh
 npm install

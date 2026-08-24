@@ -2,6 +2,7 @@
 .git/**
 .gitignore
 dev-install.sh
+propagate-version.sh
 .github/**
 .agent-work/**
 internal/**

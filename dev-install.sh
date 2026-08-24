@@ -14,7 +14,7 @@ npm run build
 package_json_backup="$(mktemp)"
 cp package.json "$package_json_backup"
 trap 'cp "$package_json_backup" package.json; rm -f "$package_json_backup"' EXIT
-node -e 'const fs=require("node:fs"); const p=JSON.parse(fs.readFileSync("package.json")); p.contributes.viewsContainers.activitybar[0].title=`${p.displayName} - ${process.argv[1]}`; fs.writeFileSync("package.json", JSON.stringify(p, null, 2)+"\n");' "$version"
+node -e 'const fs=require("node:fs"); const p=JSON.parse(fs.readFileSync("package.json")); p.contributes.viewsContainers.activitybar[0].title=`CODEX MULTI ACCOUNT - v${process.argv[1]}`; fs.writeFileSync("package.json", JSON.stringify(p, null, 2)+"\n");' "$version"
 ./node_modules/.bin/vsce package "$version" --no-git-tag-version --no-update-package-json \
   --no-dependencies --allow-missing-repository
 
