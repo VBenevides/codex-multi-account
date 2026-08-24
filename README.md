@@ -99,7 +99,7 @@ the CMA directory if needed.
 
 ## Development
 
-Version 0.1.1 targets VS Code 1.102 or newer.
+Version 0.1.0 targets VS Code 1.102 or newer.
 
 ```sh
 npm install
