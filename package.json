@@ -3,7 +3,7 @@
   "displayName": "Codex Multi Account",
   "description": "Manage local Codex account profiles and observed token usage.",
   "version": "0.1.1",
-  "publisher": "cma-local",
+  "publisher": "cma-vb",
   "license": "MIT",
   "icon": "assets/icon.png",
   "repository": {
