@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "publisher": "cma-local",
   "license": "MIT",
+  "icon": "assets/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/VBenevides/codex-multi-account.git"
