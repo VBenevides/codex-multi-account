@@ -1,0 +1,11 @@
+.git/
+.github/
+.vscode/
+internal/
+node_modules/
+.test-out/
+src/
+test/
+*.ts
+*.map
+*.vsix

@@ -1,0 +1,235 @@
+{
+  "name": "codex-multi-account",
+  "displayName": "Codex Multi Account",
+  "description": "Manage local Codex account profiles and observed token usage.",
+  "version": "0.1.0",
+  "publisher": "cma-local",
+  "license": "MIT",
+  "main": "./dist/extension.js",
+  "engines": {
+    "vscode": "^1.102.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:cma.accounts",
+    "onCommand:cma.openSettings"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cma",
+          "title": "Codex Multi Account",
+          "icon": "assets/icon-cropped.png"
+        }
+      ]
+    },
+    "views": {
+      "cma": [
+        {
+          "id": "cma.accounts",
+          "name": " "
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "cma.addAccount",
+        "title": "CMA: Add Account",
+        "icon": "$(add)"
+      },
+      {
+        "command": "cma.showUsage",
+        "title": "CMA: Show Usage",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "cma.exportUsage",
+        "title": "CMA: Export Usage"
+      },
+      {
+        "command": "cma.refresh",
+        "title": "CMA: Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "cma.openSettings",
+        "title": "CMA: Open Extension Settings",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "cma.enableFileAuth",
+        "title": "CMA: Enable File-backed Auth"
+      },
+      {
+        "command": "cma.diagnostics",
+        "title": "CMA: Diagnostics"
+      },
+      {
+        "command": "cma.accountHealth",
+        "title": "CMA: Account Health"
+      },
+      {
+        "command": "cma.clearStaleLock",
+        "title": "CMA: Clear Stale Lock"
+      },
+      {
+        "command": "cma.importCurrentAccount",
+        "title": "CMA: Import Current Codex Account"
+      },
+      {
+        "command": "cma.repairSelectedProfileState",
+        "title": "CMA: Repair Selected Profile State"
+      },
+      {
+        "command": "cma.rebuildUsageDatabase",
+        "title": "CMA: Rebuild Usage Database"
+      },
+      {
+        "command": "cma.backupUsageDatabase",
+        "title": "CMA: Backup Usage Database"
+      },
+      {
+        "command": "cma.rescanUsageFromNow",
+        "title": "CMA: Re-scan Usage From Now"
+      },
+      {
+        "command": "cma.reauthenticateBrokenProfile",
+        "title": "CMA: Re-authenticate Broken Profile"
+      },
+      {
+        "command": "cma.exportProfileMetadata",
+        "title": "CMA: Export Profile Metadata"
+      },
+      {
+        "command": "cma.importProfileMetadata",
+        "title": "CMA: Import Profile Metadata"
+      },
+      {
+        "command": "cma.attributeUsage",
+        "title": "CMA: Review Unattributed Usage"
+      },
+      {
+        "command": "cma.signIn",
+        "title": "CMA: Sign In"
+      },
+      {
+        "command": "cma.signOut",
+        "title": "CMA: Sign Out"
+      },
+      {
+        "command": "cma.selectAccount",
+        "title": "CMA: Select Account"
+      },
+      {
+        "command": "cma.renameAccount",
+        "title": "CMA: Rename Account"
+      },
+      {
+        "command": "cma.deleteAccount",
+        "title": "CMA: Delete Account"
+      }
+    ],
+    "configuration": {
+      "title": "Codex Multi Account",
+      "properties": {
+        "cma.codexBinaryPath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional path to the Codex CLI executable used for sign-in."
+        },
+        "cma.workingDirectoryDisplay": {
+          "type": "string",
+          "enum": [
+            "full",
+            "homeRelative",
+            "basename"
+          ],
+          "enumDescriptions": [
+            "Full paths",
+            "Paths relative to home",
+            "Project folder names"
+          ],
+          "default": "full",
+          "description": "Controls how working directories are displayed. Stored values remain exact for filtering."
+        },
+        "cma.quotaNetworkAccess": {
+          "type": "string",
+          "enum": [
+            "disabled",
+            "selected",
+            "all"
+          ],
+          "enumDescriptions": [
+            "Opt out: do not make remote quota requests",
+            "Opt in: query only the selected profile",
+            "Opt in: query every signed-in profile"
+          ],
+          "default": "disabled",
+          "description": "Controls whether local Codex access tokens are sent to chatgpt.com for quota data."
+        }
+      }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "cma.openSettings",
+          "when": "view == cma.accounts",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "cma.signIn",
+          "when": "view == cma.accounts && viewItem == cma.account.signedOut",
+          "group": "account@1"
+        },
+        {
+          "command": "cma.signOut",
+          "when": "view == cma.accounts && (viewItem == cma.account.signedIn || viewItem == cma.account.current.signedIn)",
+          "group": "account@2"
+        },
+        {
+          "command": "cma.selectAccount",
+          "when": "view == cma.accounts && viewItem == cma.account.signedIn",
+          "group": "account@3"
+        },
+        {
+          "command": "cma.renameAccount",
+          "when": "view == cma.accounts",
+          "group": "edit@1"
+        },
+        {
+          "command": "cma.deleteAccount",
+          "when": "view == cma.accounts",
+          "group": "edit@2"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc --noEmit",
+    "build": "node esbuild.mjs",
+    "test": "tsc --outDir .test-out && node --test .test-out/test/**/*.test.js",
+    "test:integration": "node test/integration/run.js",
+    "lint": "eslint .",
+    "format:check": "prettier --check src test scripts package.json *.mjs *.json .vscode/*.json",
+    "format": "prettier --write src test scripts package.json *.mjs *.json .vscode/*.json",
+    "package": "npm run build && vsce package --no-dependencies --allow-missing-repository",
+    "check": "npm run lint && npm run format:check && npm run compile && npm test",
+    "scan:secrets": "node scripts/scan-secrets.mjs"
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.18.0",
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.96.0",
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.2.2",
+    "esbuild": "^0.24.2",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.test-out/
+coverage/
+*.vsix
+.vscode-test/
+.codex-test-home/
+**/auth.json
+**/login-staging/
+*.sqlite
+*.sqlite-*
