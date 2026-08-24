@@ -3,6 +3,7 @@
 .gitignore
 dev-install.sh
 .github/**
+.agent-work/**
 internal/**
 test/**
 .test-out/**
