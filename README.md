@@ -1,6 +1,10 @@
 # Codex Multi Account
 
 <p align="center">
+  <img src="assets/icon.png" alt="Codex Multi Account icon" width="160">
+</p>
+
+<p align="center">
   <a href="https://github.com/VBenevides/codex-multi-account/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/VBenevides/codex-multi-account?sort=semver"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/VBenevides/codex-multi-account"></a>
   <a href="https://github.com/VBenevides/codex-multi-account/actions/workflows/codeql.yml"><img alt="CodeQL" src="https://github.com/VBenevides/codex-multi-account/actions/workflows/codeql.yml/badge.svg"></a>
