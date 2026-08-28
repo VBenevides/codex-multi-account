@@ -2,7 +2,7 @@
   "name": "cma-codex-multi-account",
   "displayName": "CMA - Codex Multi Account",
   "description": "Manage local Codex account profiles and observed token usage.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "vben",
   "license": "MIT",
   "icon": "assets/icon.png",
@@ -26,8 +26,8 @@
       "activitybar": [
         {
           "id": "cma",
-          "title": "CODEX MULTI ACCOUNT - v0.1.0",
-          "icon": "assets/icon-cropped.png"
+          "title": "CODEX MULTI ACCOUNT - v0.1.1",
+          "icon": "assets/icon.png"
         }
       ]
     },
