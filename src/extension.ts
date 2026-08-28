@@ -10,6 +10,8 @@ import { UsageService } from "./usage/usageService.js";
 import { QuotaService } from "./usage/quotaService.js";
 import { registerRecoveryCommands } from "./commands/registerRecoveryCommands.js";
 import { cleanupLoginStaging } from "./accounts/signInService.js";
+import { KeepAliveService } from "./accounts/keepAliveService.js";
+import { ProcessRunner } from "./infra/process.js";
 import {
   serializeUsageBreakdownCsv,
   serializeUsageDailyCsv,
@@ -26,6 +28,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const provider = new AccountsTreeProvider(repository);
   const tree = vscode.window.createTreeView("cma.accounts", { treeDataProvider: provider });
   const status = new StatusBar();
+  const binaryPath = vscode.workspace
+    .getConfiguration("cma")
+    .get<string>("codexBinaryPath")
+    ?.trim();
+  const keepAlive = new KeepAliveService(
+    repository,
+    new ProcessRunner(),
+    binaryPath,
+    context.globalState,
+  );
   sync = new AuthSyncService(repository);
   usage = new UsageService(resolvePaths(), repository, undefined, (error) => {
     const detail = error instanceof Error ? error.message : String(error);
@@ -75,14 +87,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       void vscode.window.showInformationMessage(`Usage exported to ${target.fsPath}.`);
     },
     () => usage?.health ?? { watcherHealth: "unknown", parserFailureCount: 0, degraded: true },
+    () => keepAlive.runNow(),
   );
   registerRecoveryCommands(context, provider, repository, usage);
+  void keepAlive.start();
   context.subscriptions.push(
     tree,
     provider,
     status,
     { dispose: () => void sync?.stop() },
     { dispose: () => void usage?.stop() },
+    { dispose: () => keepAlive.stop() },
   );
 }
 

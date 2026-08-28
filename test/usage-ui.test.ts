@@ -17,8 +17,10 @@ test("usage webview renders a VS Code-styled accessible dashboard shell", () => 
   assert.match(html, /--vscode-editorWidget-background/);
   assert.match(html, /appearance:none/);
   assert.match(html, /id="clear-filters"/);
+  assert.match(html, /id="keep-alive"/);
   assert.match(html, /aria-live="polite"/);
   assert.match(html, /prefers-reduced-motion/);
+  assert.doesNotMatch(html, /main\[aria-busy="true"\]\{opacity:\.7\}/);
   assert.doesNotMatch(html, /Working Directory<\/label>/);
   assert.doesNotMatch(html, /innerHTML/);
 });
@@ -75,10 +77,17 @@ test("usage webview includes optional-data dashboard interactions", () => {
   assert.match(html, /progressbar/);
   assert.match(html, /\[SELECTED\]/);
   assert.match(html, /Resets /);
+  assert.match(html, /formatQuotaWindow/);
+  assert.match(html, /quota-windows/);
+  assert.doesNotMatch(html, /flatMap/);
+  assert.match(html, /Daily/);
+  assert.match(html, /Weekly/);
+  assert.match(html, /Last Keep Alive at:/);
   assert.match(html, /top 5/);
   assert.match(html, /chartBucket/);
   assert.match(html, /chartGroup:state\.chart\.group/);
   assert.match(html, /request\('chart'\)/);
+  assert.match(html, /request\('keepAlive'\)/);
   assert.match(html, /normalizeRow/);
   assert.match(html, /cell\.textContent=compact\(value\[key\]\);cell\.title=exact\(value\[key\]\)/);
   assert.match(html, /savedUi\.expanded/);

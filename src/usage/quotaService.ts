@@ -13,12 +13,19 @@ export interface QuotaServiceOptions {
   policy?: QuotaRequestPolicy;
 }
 
+export interface QuotaWindow {
+  remainingPercent: number | null;
+  resetsAt: string | null;
+  windowSeconds: number | null;
+}
+
 export interface AccountQuota {
   profileId?: string;
   name: string;
   remainingPercent: number | null;
   resetsAt: string | null;
   lastCheckedAt: string | null;
+  windows?: QuotaWindow[];
 }
 
 interface QuotaCache {
@@ -66,6 +73,13 @@ export class QuotaService {
 
   async cached(): Promise<AccountQuota[]> {
     return this.readCache();
+  }
+
+  async current(): Promise<AccountQuota[]> {
+    const profiles = await this.repository.listProfiles();
+    return (await Promise.all(profiles.map((profile) => this.fetchProfileQuota(profile)))).filter(
+      (quota): quota is AccountQuota & { profileId: string } => quota !== undefined,
+    );
   }
 
   private async fetchProfileQuota(
@@ -123,6 +137,7 @@ export class QuotaService {
 export function parseQuotaResponse(value: unknown): {
   remainingPercent: number | null;
   resetsAt: string | null;
+  windows: QuotaWindow[];
 } {
   const body = record(value);
   const byLimit = record(body?.rate_limits_by_limit_id);
@@ -133,13 +148,28 @@ export function parseQuotaResponse(value: unknown): {
     record(body?.rate_limit);
   const primary = record(snapshot?.primary) ?? record(snapshot?.primary_window);
   const secondary = record(snapshot?.secondary) ?? record(snapshot?.secondary_window);
-  const window = primary ?? secondary;
-  if (!window) return { remainingPercent: null, resetsAt: null };
+  const windows = [primary, secondary]
+    .filter((window): window is Record<string, unknown> => !!window)
+    .map(parseQuotaWindow);
+  const window = windows[0];
+  if (!window) return { remainingPercent: null, resetsAt: null, windows: [] };
+  return {
+    remainingPercent: window.remainingPercent,
+    resetsAt: window.resetsAt,
+    windows,
+  };
+}
+
+function parseQuotaWindow(window: Record<string, unknown>): QuotaWindow {
   const usedPercent = number(window.used_percent ?? window.usedPercent);
   const reset = number(window.resets_at ?? window.reset_at ?? window.resetsAt);
+  const windowMinutes = number(window.window_minutes ?? window.window_duration_mins);
   return {
     remainingPercent: usedPercent === null ? null : 100 - Math.max(0, Math.min(100, usedPercent)),
     resetsAt: reset === null ? null : new Date(reset * 1000).toISOString(),
+    windowSeconds:
+      number(window.limit_window_seconds ?? window.window_duration_seconds) ??
+      (windowMinutes === null ? null : windowMinutes * 60),
   };
 }
 
@@ -173,7 +203,19 @@ function isCachedQuota(value: unknown): boolean {
     typeof item.name === "string" &&
     (item.remainingPercent === null || typeof item.remainingPercent === "number") &&
     (item.resetsAt === null || typeof item.resetsAt === "string") &&
-    (item.lastCheckedAt === null || typeof item.lastCheckedAt === "string"),
+    (item.lastCheckedAt === null || typeof item.lastCheckedAt === "string") &&
+    (!("windows" in item) ||
+      (Array.isArray(item.windows) && item.windows.every(isCachedQuotaWindow))),
+  );
+}
+
+function isCachedQuotaWindow(value: unknown): boolean {
+  const item = record(value);
+  return Boolean(
+    item &&
+    (item.remainingPercent === null || typeof item.remainingPercent === "number") &&
+    (item.resetsAt === null || typeof item.resetsAt === "string") &&
+    (item.windowSeconds === null || typeof item.windowSeconds === "number"),
   );
 }
 

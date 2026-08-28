@@ -10,3 +10,4 @@ coverage/
 *.sqlite
 *.sqlite-*
 .agent-work
+local

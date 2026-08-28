@@ -41,6 +41,7 @@ export function registerCommands(
   readDaily?: (filter: UsageFilter, options?: UsageDailyOptions) => UsageDaily[],
   onExport?: (format: UsageExportFormat, filter: UsageFilter) => Promise<void> | void,
   readUsageHealth?: () => UsageHealth,
+  runKeepAlive?: () => Promise<void> | void,
 ): void {
   const add = vscode.commands.registerCommand("cma.addAccount", async () => {
     const name = await vscode.window.showInputBox({ prompt: "Account Name" });
@@ -84,6 +85,7 @@ export function registerCommands(
         .get<WorkingDirectoryDisplay>("workingDirectoryDisplay", "full"),
       onExport,
       context.globalState,
+      runKeepAlive,
     ),
   );
   const exportUsage = vscode.commands.registerCommand("cma.exportUsage", async () => {

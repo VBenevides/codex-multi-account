@@ -7,13 +7,14 @@ import { AccountRepository } from "../src/accounts/accountRepository.js";
 import { SwitchService } from "../src/accounts/switchService.js";
 import { LockService } from "../src/accounts/lockService.js";
 import { CodexConfigService } from "../src/config/codexConfigService.js";
-import { resolvePaths } from "../src/config/paths.js";
+import { resolvePaths, resolveProfilePaths } from "../src/config/paths.js";
 import { readStateFile, writeStateFile } from "../src/accounts/accountService.js";
 import { readAuthFile } from "../src/accounts/authFile.js";
 import { AuthSyncService } from "../src/accounts/authSyncService.js";
 import { UsageService } from "../src/usage/usageService.js";
 import { extractLoginUrl, SignInService } from "../src/accounts/signInService.js";
 import { UsageDatabase } from "../src/usage/database.js";
+import { KeepAliveService } from "../src/accounts/keepAliveService.js";
 
 const auth = (id: string, credential = id) =>
   Buffer.from(JSON.stringify({ tokens: { refresh_token: `fake-${credential}` }, account_id: id }));
@@ -31,6 +32,166 @@ test("extracts the Codex login URL from CLI output", () => {
   assert.equal(extractLoginUrl("Open https://auth.openai.com.evil.example/login"), undefined);
   assert.equal(extractLoginUrl("Open http://auth.openai.com/codex/device?code=abc"), undefined);
   assert.equal(extractLoginUrl("No sign-in URL"), undefined);
+});
+
+test("runs the keep-alive prompt with every signed-in profile", async () => {
+  const home = await mkdtemp(path.join(tmpdir(), "cma-keep-alive-"));
+  try {
+    const paths = resolvePaths(home);
+    const repository = new AccountRepository(paths);
+    const first = await repository.createProfile("First");
+    const second = await repository.createProfile("Second");
+    await repository.writeProfileAuth(first.id, auth("first"));
+    let now = Date.parse("2026-08-28T12:00:00.000Z");
+    const calls: Array<{ args: readonly string[]; home?: string }> = [];
+    const process = {
+      discover: async () => "/fake/codex",
+      run: async (
+        _command: string,
+        args: readonly string[],
+        options: { env?: NodeJS.ProcessEnv },
+      ) => {
+        calls.push({ args, home: options.env?.CODEX_HOME });
+        return { code: 0, signal: null, stdout: "", stderr: "", cancelled: false, timedOut: false };
+      },
+    };
+    const values = new Map<string, unknown>();
+    const state = {
+      get: <T>(key: string) => values.get(key) as T | undefined,
+      update: async (key: string, value: unknown) => {
+        values.set(key, value);
+      },
+    };
+    const readQuotas = async () => [
+      {
+        profileId: first.id,
+        name: first.name,
+        remainingPercent: 100,
+        resetsAt: null,
+        lastCheckedAt: null,
+        windows: [
+          {
+            remainingPercent: 100,
+            resetsAt: new Date(now + 5 * 60 * 60 * 1000).toISOString(),
+            windowSeconds: 18_000,
+          },
+        ],
+      },
+    ];
+    const service = new KeepAliveService(
+      repository,
+      process,
+      undefined,
+      state,
+      () => now,
+      readQuotas,
+    );
+    await service.start();
+    service.stop();
+    const reopened = new KeepAliveService(
+      repository,
+      process,
+      undefined,
+      state,
+      () => now,
+      readQuotas,
+    );
+    await reopened.start();
+    await reopened.runNow();
+    reopened.stop();
+    now += 30 * 60 * 1000;
+    const due = new KeepAliveService(repository, process, undefined, state, () => now, readQuotas);
+    await due.start();
+    due.stop();
+
+    assert.equal(calls.length, 3);
+    assert.equal(calls[0].home, resolveProfilePaths(paths, first.slug).directory);
+    assert.deepEqual(calls[0].args, [
+      "exec",
+      "--ephemeral",
+      "--sandbox",
+      "read-only",
+      "--skip-git-repo-check",
+      "--config",
+      'cli_auth_credentials_store="file"',
+      "--model",
+      "gpt-5.6-luna",
+      "--config",
+      'model_reasoning_effort="low"',
+      'Repeat the word "Hi" exactly 1000 times, separated by spaces. Do not add anything else.',
+    ]);
+    assert.equal(await repository.profileAuthExists(second.id), false);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test("runs keep-alive only near the daily five-hour reset", async () => {
+  const home = await mkdtemp(path.join(tmpdir(), "cma-keep-alive-used-"));
+  try {
+    const paths = resolvePaths(home);
+    const repository = new AccountRepository(paths);
+    const first = await repository.createProfile("First");
+    const second = await repository.createProfile("Second");
+    await repository.writeProfileAuth(first.id, auth("first"));
+    await repository.writeProfileAuth(second.id, auth("second"));
+    const now = Date.parse("2026-08-28T12:00:00.000Z");
+    const calls: string[] = [];
+    const process = {
+      discover: async () => "/fake/codex",
+      run: async (
+        _command: string,
+        _args: readonly string[],
+        options: { env?: NodeJS.ProcessEnv },
+      ) => {
+        calls.push(options.env?.CODEX_HOME ?? "");
+        return { code: 0, signal: null, stdout: "", stderr: "", cancelled: false, timedOut: false };
+      },
+    };
+    const service = new KeepAliveService(
+      repository,
+      process,
+      undefined,
+      undefined,
+      () => Date.parse("2026-08-28T12:00:00.000Z"),
+      async () => [
+        {
+          profileId: first.id,
+          name: first.name,
+          remainingPercent: 80,
+          resetsAt: null,
+          lastCheckedAt: null,
+          windows: [
+            {
+              remainingPercent: 80,
+              resetsAt: new Date(now + (4 * 60 + 57) * 60 * 1000).toISOString(),
+              windowSeconds: 18_000,
+            },
+          ],
+        },
+        {
+          profileId: second.id,
+          name: second.name,
+          remainingPercent: 100,
+          resetsAt: null,
+          lastCheckedAt: null,
+          windows: [
+            {
+              remainingPercent: 100,
+              resetsAt: new Date(now + (4 * 60 + 58) * 60 * 1000).toISOString(),
+              windowSeconds: 18_000,
+            },
+          ],
+        },
+      ],
+    );
+    await service.start();
+    service.stop();
+
+    assert.deepEqual(calls, [resolveProfilePaths(paths, second.slug).directory]);
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
 });
 
 test("sign-in stores auth and safe identity metadata with a mocked process", async () => {

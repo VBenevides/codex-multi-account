@@ -19,7 +19,8 @@
   ],
   "activationEvents": [
     "onView:cma.accounts",
-    "onCommand:cma.openSettings"
+    "onCommand:cma.openSettings",
+    "onStartupFinished"
   ],
   "contributes": {
     "viewsContainers": {
@@ -143,7 +144,7 @@
         "cma.codexBinaryPath": {
           "type": "string",
           "default": "",
-          "description": "Optional path to the Codex CLI executable used for sign-in."
+          "description": "Optional path to the Codex CLI executable used for account operations."
         },
         "cma.workingDirectoryDisplay": {
           "type": "string",

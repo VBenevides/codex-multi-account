@@ -14,6 +14,7 @@ import { formatCachingRate, formatTokenCount } from "../usage/format.js";
 import { formatWorkingDirectory, type WorkingDirectoryDisplay } from "../usage/privacy.js";
 import { renderUsageHtml } from "./usageHtml.js";
 import type { UsageExportFormat } from "../usage/usageExport.js";
+import { KEEP_ALIVE_STATE_KEY } from "../accounts/keepAliveService.js";
 
 type TotalsReader = (filter: UsageFilter) => UsageTotals;
 type QuotaReader = () => Promise<AccountQuota[]>;
@@ -22,6 +23,7 @@ type BreakdownReader = (filter: UsageFilter) => UsageBreakdown[];
 type FilterOptionsReader = (filter: UsageFilter) => UsageFilterOptions;
 type DailyReader = (filter: UsageFilter, options?: UsageDailyOptions) => UsageDaily[];
 type Exporter = (format: UsageExportFormat, filter: UsageFilter) => Promise<void> | void;
+type KeepAliveRunner = () => Promise<void> | void;
 
 const DEFAULT_DAYS = 30;
 const PERIODS = new Set([1, 7, 30]);
@@ -45,6 +47,7 @@ export class UsagePanel {
     workingDirectoryDisplay: WorkingDirectoryDisplay = "full",
     exportUsage?: Exporter,
     globalState?: vscode.Memento,
+    runKeepAlive?: KeepAliveRunner,
   ): void {
     if (UsagePanel.current) {
       UsagePanel.current.reveal();
@@ -111,7 +114,9 @@ export class UsagePanel {
           await exportUsage?.(message.type === "exportCsv" ? "csv" : "json", filter);
           return;
         }
-        const loadOptions = message.type === "ready" || message.type === "refresh";
+        if (message.type === "keepAlive") await runKeepAlive?.();
+        const loadOptions =
+          message.type === "ready" || message.type === "refresh" || message.type === "keepAlive";
         const accounts = loadOptions ? await readAccounts() : undefined;
         const empty =
           totals.inputTokens === 0n &&
@@ -196,7 +201,19 @@ export class UsagePanel {
         if (loadOptions) {
           void Promise.resolve()
             .then(readQuotas)
-            .then((quotas) => panel.webview.postMessage({ type: "quota", quotas }))
+            .then((quotas) => {
+              const lastKeepAliveAt =
+                globalState?.get<Record<string, number>>(KEEP_ALIVE_STATE_KEY) ?? {};
+              return panel.webview.postMessage({
+                type: "quota",
+                quotas: quotas.map((quota) => ({
+                  ...quota,
+                  lastKeepAliveAt: quota.profileId
+                    ? (lastKeepAliveAt[quota.profileId] ?? null)
+                    : null,
+                })),
+              });
+            })
             .catch(() => panel.webview.postMessage({ type: "quota", quotas: [] }));
         }
       } catch {

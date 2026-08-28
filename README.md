@@ -18,8 +18,10 @@ more than one Codex account. Keep separate local profiles, switch the active
 account from the Accounts view, and continue using the native Codex extension
 with the same configuration, MCP settings, sessions, and skills.
 
-CMA does not replace Codex chat or model execution. It keeps account
-management and local usage visibility in one small workspace tool.
+CMA does not replace Codex chat. It keeps account management and local usage
+visibility in one small workspace tool, and sends a bounded keep-alive request
+with each profile's credentials to pre-start its rolling 5-hour refresh window.
+This leaves the account closer to resetting when you switch to it later.
 
 ## Why CMA
 
@@ -30,6 +32,13 @@ management and local usage visibility in one small workspace tool.
   under `~/.codex/cma/accounts` without duplicating the rest of your Codex home.
 - **See where usage goes.** Review input, cached, fresh, and output tokens by
   account, model, project, and period in the local Usage dashboard.
+- **Keep account quotas active.** CMA checks each account's current quota and
+  sends a bounded 1000-word keep-alive request with that profile's credentials
+  to pre-start its rolling 5-hour refresh window. This leaves the account
+  closer to resetting when you switch to it later. It runs only when the daily
+  reset is 4h58m, 4h59m, or 5h away, using `gpt-5.6-luna` with low reasoning
+  effort. Use **Keep Alive** in the Usage view to force an immediate eligible
+  check.
 - **Recover with confidence.** Use diagnostics, account health, repair, backup,
   and rebuild commands when local state needs attention.
 - **Stay in control of network access.** Quota checks are disabled by default;

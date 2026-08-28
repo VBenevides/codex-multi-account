@@ -106,10 +106,39 @@ test("parses the Codex quota window", () => {
   assert.deepEqual(
     parseQuotaResponse({
       rate_limit: {
-        primary_window: { used_percent: 42, reset_at: 1_900_000_000 },
+        primary_window: { used_percent: 42, reset_at: 1_900_000_000, limit_window_seconds: 86400 },
       },
     }),
-    { remainingPercent: 58, resetsAt: "2030-03-17T17:46:40.000Z" },
+    {
+      remainingPercent: 58,
+      resetsAt: "2030-03-17T17:46:40.000Z",
+      windows: [
+        {
+          remainingPercent: 58,
+          resetsAt: "2030-03-17T17:46:40.000Z",
+          windowSeconds: 86400,
+        },
+      ],
+    },
+  );
+});
+
+test("parses daily and weekly quota windows", () => {
+  assert.deepEqual(
+    parseQuotaResponse({
+      rate_limit: {
+        primary_window: { used_percent: 20, reset_at: 1_900_000_000, limit_window_seconds: 86400 },
+        secondary_window: {
+          used_percent: 40,
+          reset_at: 1_900_100_000,
+          limit_window_seconds: 604800,
+        },
+      },
+    }).windows,
+    [
+      { remainingPercent: 80, resetsAt: "2030-03-17T17:46:40.000Z", windowSeconds: 86400 },
+      { remainingPercent: 60, resetsAt: "2030-03-18T21:33:20.000Z", windowSeconds: 604800 },
+    ],
   );
 });
 
