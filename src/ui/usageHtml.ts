@@ -41,19 +41,7 @@ function rawTemplate(strings: TemplateStringsArray, ...values: unknown[]): strin
       "meta.append();const windows=document.createElement('div');windows.className='quota-windows';for(const [index,window] of (Array.isArray(value?.windows)&&value.windows.length?value.windows:[value]).entries()){const windowRemaining=window?.remainingPercent===null||window?.remainingPercent===undefined?null:Math.max(0,Math.min(100,Number(window.remainingPercent)));const windowUsed=windowRemaining===null?null:100-windowRemaining;const row=document.createElement('div');row.className='quota-window';const windowUsage=document.createElement('span');windowUsage.textContent=formatQuotaWindow(window,index)+': '+(windowUsed===null?'Unavailable':percent(windowUsed)+' used');const windowReset=document.createElement('span');windowReset.textContent=formatReset(window?.resetsAt);row.append(windowUsage,windowReset);windows.append(row)}const keepAlive=document.createElement('span');keepAlive.className='quota-keep-alive';keepAlive.textContent='Last Keep Alive at: '+formatKeepAlive(value?.lastKeepAliveAt);item.append(head,bar,meta,windows,keepAlive);",
     )
     .replace(
-      '<button id="refresh" class="button" type="button">Refresh</button>',
-      '<button id="refresh" class="button" type="button">Refresh</button><button id="keep-alive" class="button secondary" type="button">Keep Alive</button>',
-    )
-    .replace(
-      "const refresh=document.getElementById('refresh');",
-      "const refresh=document.getElementById('refresh');const keepAlive=document.getElementById('keep-alive');",
-    )
-    .replace(
-      "refresh.disabled=state.loading;",
-      "refresh.disabled=state.loading;keepAlive.disabled=state.loading;",
-    )
-    .replace(
       "period.addEventListener('change'",
-      "keepAlive.addEventListener('click',()=>request('keepAlive'));period.addEventListener('change'",
+      "refresh.addEventListener('click',()=>request('refresh'));period.addEventListener('change'",
     );
 }

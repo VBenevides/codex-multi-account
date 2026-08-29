@@ -114,9 +114,8 @@ export class UsagePanel {
           await exportUsage?.(message.type === "exportCsv" ? "csv" : "json", filter);
           return;
         }
-        if (message.type === "keepAlive") await runKeepAlive?.();
-        const loadOptions =
-          message.type === "ready" || message.type === "refresh" || message.type === "keepAlive";
+        if (message.type === "refresh") await runKeepAlive?.();
+        const loadOptions = message.type === "ready" || message.type === "refresh";
         const accounts = loadOptions ? await readAccounts() : undefined;
         const empty =
           totals.inputTokens === 0n &&

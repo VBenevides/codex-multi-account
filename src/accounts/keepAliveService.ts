@@ -4,6 +4,7 @@ import { ProcessRunner } from "../infra/process.js";
 import { QuotaService, type AccountQuota } from "../usage/quotaService.js";
 
 const KEEP_ALIVE_INTERVAL_MS = 30 * 60 * 1000;
+const KEEP_ALIVE_CHECK_INTERVAL_MS = 60 * 1000;
 const KEEP_ALIVE_RESET_MINUTES = 4 * 60 + 58;
 const KEEP_ALIVE_RESET_MAX_MINUTES = 5 * 60;
 export const KEEP_ALIVE_STATE_KEY = "cma.keepAlive.lastRefreshAt";
@@ -36,7 +37,8 @@ export class KeepAliveService {
   async start(): Promise<void> {
     if (this.timer) return;
     this.controller = new AbortController();
-    this.timer = setInterval(() => void this.run(), KEEP_ALIVE_INTERVAL_MS);
+    // ponytail: one-minute quota polling keeps the two-minute window observable; use reset-timed scheduling if request volume matters.
+    this.timer = setInterval(() => void this.run(), KEEP_ALIVE_CHECK_INTERVAL_MS);
     this.timer.unref?.();
     await this.run();
   }
@@ -132,6 +134,6 @@ export class KeepAliveService {
 function isKeepAliveReset(value: string | null | undefined, now: number): boolean {
   const reset = value ? Date.parse(value) : NaN;
   if (!Number.isFinite(reset)) return false;
-  const minutes = Math.floor((reset - now) / 60_000);
+  const minutes = Math.round((reset - now) / 60_000);
   return minutes >= KEEP_ALIVE_RESET_MINUTES && minutes <= KEEP_ALIVE_RESET_MAX_MINUTES;
 }

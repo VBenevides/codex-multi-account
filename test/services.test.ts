@@ -164,7 +164,7 @@ test("runs keep-alive only near the daily five-hour reset", async () => {
           windows: [
             {
               remainingPercent: 80,
-              resetsAt: new Date(now + (4 * 60 + 57) * 60 * 1000).toISOString(),
+              resetsAt: new Date(now + ((4 * 60 + 57) * 60 + 59) * 1000).toISOString(),
               windowSeconds: 18_000,
             },
           ],
@@ -178,7 +178,7 @@ test("runs keep-alive only near the daily five-hour reset", async () => {
           windows: [
             {
               remainingPercent: 100,
-              resetsAt: new Date(now + (4 * 60 + 58) * 60 * 1000).toISOString(),
+              resetsAt: new Date(now + (4 * 60 + 57) * 60 * 1000).toISOString(),
               windowSeconds: 18_000,
             },
           ],
@@ -188,7 +188,7 @@ test("runs keep-alive only near the daily five-hour reset", async () => {
     await service.start();
     service.stop();
 
-    assert.deepEqual(calls, [resolveProfilePaths(paths, second.slug).directory]);
+    assert.deepEqual(calls, [resolveProfilePaths(paths, first.slug).directory]);
   } finally {
     await rm(home, { recursive: true, force: true });
   }

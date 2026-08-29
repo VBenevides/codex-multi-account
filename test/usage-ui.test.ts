@@ -17,7 +17,8 @@ test("usage webview renders a VS Code-styled accessible dashboard shell", () => 
   assert.match(html, /--vscode-editorWidget-background/);
   assert.match(html, /appearance:none/);
   assert.match(html, /id="clear-filters"/);
-  assert.match(html, /id="keep-alive"/);
+  assert.match(html, /id="refresh"/);
+  assert.doesNotMatch(html, /id="keep-alive"/);
   assert.match(html, /aria-live="polite"/);
   assert.match(html, /prefers-reduced-motion/);
   assert.doesNotMatch(html, /main\[aria-busy="true"\]\{opacity:\.7\}/);
@@ -87,7 +88,8 @@ test("usage webview includes optional-data dashboard interactions", () => {
   assert.match(html, /chartBucket/);
   assert.match(html, /chartGroup:state\.chart\.group/);
   assert.match(html, /request\('chart'\)/);
-  assert.match(html, /request\('keepAlive'\)/);
+  assert.match(html, /refresh\.addEventListener\('click',\(\)=>request\('refresh'\)\)/);
+  assert.doesNotMatch(html, /request\('keepAlive'\)/);
   assert.match(html, /normalizeRow/);
   assert.match(html, /cell\.textContent=compact\(value\[key\]\);cell\.title=exact\(value\[key\]\)/);
   assert.match(html, /savedUi\.expanded/);
