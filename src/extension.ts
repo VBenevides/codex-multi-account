@@ -49,6 +49,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       .getConfiguration("cma")
       .get<QuotaRequestPolicy>("quotaNetworkAccess", "disabled");
   await sync.start().catch(() => undefined);
+  void keepAlive.start();
   await usage.start();
   if (usage.health.degraded) status.setProfile(undefined, true);
   await provider.startWatching().catch(() => undefined);
@@ -90,7 +91,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     () => keepAlive.runNow(),
   );
   registerRecoveryCommands(context, provider, repository, usage);
-  void keepAlive.start();
   context.subscriptions.push(
     tree,
     provider,

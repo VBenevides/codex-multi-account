@@ -37,7 +37,7 @@ This leaves the account closer to resetting when you switch to it later.
   to pre-start its rolling 5-hour refresh window. This leaves the account
   closer to resetting when you switch to it later. It runs only when the daily
   reset is 4h58m, 4h59m, or 5h away, using `gpt-5.6-luna` with low reasoning
-  effort. Use **Keep Alive** in the Usage view to force an immediate eligible
+  effort. Opening or refreshing the Usage view runs an immediate eligible
   check.
 - **Recover with confidence.** Use diagnostics, account health, repair, backup,
   and rebuild commands when local state needs attention.
