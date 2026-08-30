@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.4] - 2026-08-29
+
+### Features
+
+- Added estimated USD cost reporting for known models, with configurable model pricing overrides.
+- Added cost totals and sorting to the Usage dashboard.
+- Updated quota details to show five-hour and weekly windows.
+
+### Other
+
+- Bumped the extension version to 0.1.4.
+
 ## [0.1.2] - 2026-08-28
 
 ### Features

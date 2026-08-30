@@ -18,6 +18,7 @@ test("usage webview renders a VS Code-styled accessible dashboard shell", () => 
   assert.match(html, /appearance:none/);
   assert.match(html, /id="clear-filters"/);
   assert.match(html, /id="refresh"/);
+  assert.match(html, /id="edit-prices"/);
   assert.doesNotMatch(html, /id="keep-alive"/);
   assert.match(html, /aria-live="polite"/);
   assert.match(html, /prefers-reduced-motion/);
@@ -35,6 +36,7 @@ test("usage webview includes optional-data dashboard interactions", () => {
     "fresh",
     "output",
     "interactions",
+    "cost",
     "quota-list",
     "usage-chart",
     "top-projects",
@@ -67,6 +69,7 @@ test("usage webview includes optional-data dashboard interactions", () => {
     "input",
     "cached",
     "output",
+    "cost",
     "cacheRate",
     "interactions",
     "account",
@@ -81,9 +84,11 @@ test("usage webview includes optional-data dashboard interactions", () => {
   assert.match(html, /formatQuotaWindow/);
   assert.match(html, /quota-windows/);
   assert.doesNotMatch(html, /flatMap/);
-  assert.match(html, /Daily/);
+  assert.match(html, /5 hours/);
+  assert.match(html, /formatCost/);
+  assert.match(html, /type:'editPricing'/);
   assert.match(html, /Weekly/);
-  assert.match(html, /Last Keep Alive at:/);
+  assert.doesNotMatch(html, /Last Keep Alive at:/);
   assert.match(html, /top 5/);
   assert.match(html, /chartBucket/);
   assert.match(html, /chartGroup:state\.chart\.group/);

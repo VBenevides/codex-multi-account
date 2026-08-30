@@ -175,6 +175,33 @@
           ],
           "default": "disabled",
           "description": "Controls whether local Codex access tokens are sent to chatgpt.com for quota data."
+        },
+        "cma.modelPricing": {
+          "type": "object",
+          "default": {},
+          "description": "Optional model prices in USD per 1M tokens. Use {\"model-id\": {\"input\": 1, \"cachedInput\": 0.1, \"output\": 2}}. Overrides built-in prices.",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "input",
+              "output"
+            ],
+            "properties": {
+              "input": {
+                "type": "number",
+                "minimum": 0
+              },
+              "cachedInput": {
+                "type": "number",
+                "minimum": 0
+              },
+              "output": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
         }
       }
     },

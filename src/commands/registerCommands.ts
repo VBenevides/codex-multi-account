@@ -23,6 +23,7 @@ import type { AccountQuota } from "../usage/quotaService.js";
 import type { WorkingDirectoryDisplay } from "../usage/privacy.js";
 import type { UsageExportFormat } from "../usage/usageExport.js";
 import type { UsageHealth } from "../usage/usageService.js";
+import type { ModelPricingTable } from "../usage/pricing.js";
 
 export function registerCommands(
   context: vscode.ExtensionContext,
@@ -86,6 +87,7 @@ export function registerCommands(
       onExport,
       context.globalState,
       runKeepAlive,
+      () => vscode.workspace.getConfiguration("cma").get<ModelPricingTable>("modelPricing", {}),
     ),
   );
   const exportUsage = vscode.commands.registerCommand("cma.exportUsage", async () => {

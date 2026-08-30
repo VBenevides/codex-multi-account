@@ -12,9 +12,9 @@ import type {
 import type { AccountQuota } from "../usage/quotaService.js";
 import { formatCachingRate, formatTokenCount } from "../usage/format.js";
 import { formatWorkingDirectory, type WorkingDirectoryDisplay } from "../usage/privacy.js";
+import { estimateModelCostMicros, type ModelPricingTable } from "../usage/pricing.js";
 import { renderUsageHtml } from "./usageHtml.js";
 import type { UsageExportFormat } from "../usage/usageExport.js";
-import { KEEP_ALIVE_STATE_KEY } from "../accounts/keepAliveService.js";
 
 type TotalsReader = (filter: UsageFilter) => UsageTotals;
 type QuotaReader = () => Promise<AccountQuota[]>;
@@ -24,6 +24,7 @@ type FilterOptionsReader = (filter: UsageFilter) => UsageFilterOptions;
 type DailyReader = (filter: UsageFilter, options?: UsageDailyOptions) => UsageDaily[];
 type Exporter = (format: UsageExportFormat, filter: UsageFilter) => Promise<void> | void;
 type KeepAliveRunner = () => Promise<void> | void;
+type ModelPricingReader = () => ModelPricingTable;
 
 const DEFAULT_DAYS = 30;
 const PERIODS = new Set([1, 7, 30]);
@@ -48,6 +49,7 @@ export class UsagePanel {
     exportUsage?: Exporter,
     globalState?: vscode.Memento,
     runKeepAlive?: KeepAliveRunner,
+    readModelPricing: ModelPricingReader = () => ({}),
   ): void {
     if (UsagePanel.current) {
       UsagePanel.current.reveal();
@@ -66,7 +68,12 @@ export class UsagePanel {
     panel.webview.html = renderUsageHtml(nonce, globalState?.get<UsageViewState>(USAGE_STATE_KEY));
     let loading = false;
     panel.webview.onDidReceiveMessage(async (message: unknown) => {
-      if (!isMessage(message) || loading) return;
+      if (!isMessage(message)) return;
+      if (message.type === "editPricing") {
+        void vscode.commands.executeCommand("workbench.action.openSettings", "cma.modelPricing");
+        return;
+      }
+      if (loading) return;
       loading = true;
       void globalState?.update(USAGE_STATE_KEY, {
         filters: {
@@ -110,6 +117,20 @@ export class UsagePanel {
           model: undefined,
           workingDirectory: undefined,
         });
+        const modelPricing = readModelPricing();
+        const breakdownCosts = breakdown.map((row) =>
+          estimateModelCostMicros(
+            row.model,
+            row.inputTokens,
+            row.cachedInputTokens,
+            row.outputTokens,
+            modelPricing,
+          ),
+        );
+        const costMicros = breakdownCosts.reduce<bigint | null>(
+          (sum, value) => (value === undefined ? sum : (sum ?? 0n) + value),
+          null,
+        );
         if (message.type === "exportCsv" || message.type === "exportJson") {
           await exportUsage?.(message.type === "exportCsv" ? "csv" : "json", filter);
           return;
@@ -143,6 +164,7 @@ export class UsagePanel {
           cachedPercent: formatCachingRate(totals.cachedInputTokens, totals.inputTokens),
           outputTokens: formatTokenCount(totals.outputTokens),
           outputTokensRaw: totals.outputTokens.toString(),
+          costMicros: costMicros?.toString() ?? null,
           interactions: daily.reduce((sum, row) => sum + row.interactions, 0),
           ...(previous
             ? {
@@ -153,7 +175,7 @@ export class UsagePanel {
                 },
               }
             : {}),
-          breakdown: breakdown.map((row) => ({
+          breakdown: breakdown.map((row, index) => ({
             accountName: row.accountName,
             workingDirectory: formatWorkingDirectory(row.workingDirectory, workingDirectoryDisplay),
             projectName: formatWorkingDirectory(row.workingDirectory, "basename"),
@@ -166,6 +188,7 @@ export class UsagePanel {
             cachedInputTokensRaw: row.cachedInputTokens.toString(),
             outputTokens: formatTokenCount(row.outputTokens),
             outputTokensRaw: row.outputTokens.toString(),
+            costMicros: breakdownCosts[index]?.toString() ?? null,
             interactions: row.interactions ?? 0,
           })),
           daily: daily.map((row) => ({
@@ -201,16 +224,9 @@ export class UsagePanel {
           void Promise.resolve()
             .then(readQuotas)
             .then((quotas) => {
-              const lastKeepAliveAt =
-                globalState?.get<Record<string, number>>(KEEP_ALIVE_STATE_KEY) ?? {};
               return panel.webview.postMessage({
                 type: "quota",
-                quotas: quotas.map((quota) => ({
-                  ...quota,
-                  lastKeepAliveAt: quota.profileId
-                    ? (lastKeepAliveAt[quota.profileId] ?? null)
-                    : null,
-                })),
+                quotas,
               });
             })
             .catch(() => panel.webview.postMessage({ type: "quota", quotas: [] }));

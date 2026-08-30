@@ -29,19 +29,83 @@ function rawTemplate(strings: TemplateStringsArray, ...values: unknown[]): strin
   );
   return html
     .replace(
+      ".kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));",
+      ".kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));",
+    )
+    .replace(
       ".quota.exhausted .progress span{background:var(--vscode-errorForeground)}",
-      ".quota.exhausted .progress span{background:var(--vscode-errorForeground)}.quota-windows{display:grid;gap:6px;margin-top:10px}.quota-window{display:flex;justify-content:space-between;gap:8px;color:var(--vscode-descriptionForeground);font-size:12px}.quota-window span:first-child{color:var(--vscode-foreground);font-weight:600}.quota-keep-alive{display:block;margin-top:10px;color:var(--vscode-descriptionForeground);font-size:12px}",
+      ".quota.exhausted .progress span{background:var(--vscode-errorForeground)}.quota-windows{display:grid;gap:6px;margin-top:10px}.quota-window{display:flex;justify-content:space-between;gap:8px;color:var(--vscode-descriptionForeground);font-size:12px}.quota-window span:first-child{color:var(--vscode-foreground);font-weight:600}",
     )
     .replace(
       "function renderQuotas(values){",
-      "function formatQuotaWindow(value,index){if(index===0)return 'Daily';if(index===1)return 'Weekly';const seconds=Number(value?.windowSeconds);if(seconds>0&&seconds%3600===0)return String(seconds/3600)+'-hour';if(seconds>0&&seconds%60===0)return String(seconds/60)+'-minute';return 'Secondary'}function formatKeepAlive(value){if(value===null||value===undefined)return 'Never';const date=new Date(value);return Number.isNaN(date.getTime())?'Never':date.toLocaleString(undefined,{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}function renderQuotas(values){",
+      "function formatQuotaWindow(value,index){if(index===0)return '5 hours';if(index===1)return 'Weekly';const seconds=Number(value?.windowSeconds);if(seconds>0&&seconds%3600===0)return String(seconds/3600)+'-hour';if(seconds>0&&seconds%60===0)return String(seconds/60)+'-minute';return 'Secondary'}function renderQuotas(values){",
+    )
+    .replace(
+      "function exact(value){return bigValue(value).toLocaleString('en-US')+' tokens'}",
+      "function formatCost(value){if(value===null||value===undefined)return '—';const micros=bigValue(value);const cents=(micros%1000000n+5000n)/10000n;return String.fromCharCode(36)+String(micros/1000000n+cents/100n)+'.'+String(cents%100n).padStart(2,'0')}function exact(value){return bigValue(value).toLocaleString('en-US')+' tokens'}",
+    )
+    .replace(
+      '<span id="updated" class="note" role="status" aria-live="polite">Updated just now</span><button id="refresh"',
+      '<span id="updated" class="note" role="status" aria-live="polite">Updated just now</span><button id="edit-prices" class="button secondary" type="button">Edit prices</button><button id="refresh"',
+    )
+    .replace(
+      "const refresh=document.getElementById('refresh');",
+      "const refresh=document.getElementById('refresh');const editPrices=document.getElementById('edit-prices');",
+    )
+    .replace(
+      "new Set(['project','model','total','input','cached','output','cacheRate','interactions','account'])",
+      "new Set(['project','model','total','input','cached','output','cost','cacheRate','interactions','account'])",
+    )
+    .replace(
+      "model:String(value?.model??'Unknown'),input,cached,output,total:input+output,interactions:Number(value?.interactions??0),raw:value",
+      "model:String(value?.model??'Unknown'),input,cached,output,cost:value?.costMicros===null||value?.costMicros===undefined?null:bigValue(value.costMicros),total:input+output,interactions:Number(value?.interactions??0),raw:value",
+    )
+    .replace(
+      "setText('interactions',interactions.toLocaleString('en-US'),interactions.toLocaleString('en-US')+' interactions');",
+      "setText('interactions',interactions.toLocaleString('en-US'),interactions.toLocaleString('en-US')+' interactions');setText('cost',formatCost(data?.costMicros));",
+    )
+    .replace(
+      "if(['total','input','cached','output'].includes(key))result=",
+      "if(['total','input','cached','output','cost'].includes(key))result=",
+    )
+    .replace(
+      "['total','input','cached','output','cacheRate','interactions']",
+      "['total','input','cached','output','cost','cacheRate','interactions']",
+    )
+    .replace(
+      "else if(key==='interactions')cell.textContent=Number(value.interactions||0).toLocaleString('en-US');",
+      "else if(key==='interactions')cell.textContent=Number(value.interactions||0).toLocaleString('en-US');else if(key==='cost')cell.textContent=formatCost(value.cost);",
+    )
+    .replace(
+      "model:'—',input:0n,cached:0n,output:0n,total:0n,interactions:0",
+      "model:'—',input:0n,cached:0n,output:0n,cost:null,total:0n,interactions:0",
+    )
+    .replace(
+      "group.interactions+=row.interactions;group.project=label",
+      "group.interactions+=row.interactions;if(row.cost!==null)group.cost=(group.cost??0n)+row.cost;group.project=label",
+    )
+    .replace(
+      "['model','total','input','cached','output','cacheRate','interactions','account']",
+      "['model','total','input','cached','output','cost','cacheRate','interactions','account']",
+    )
+    .replace(
+      "['project','model','total','input','cached','output','cacheRate','interactions','account']",
+      "['project','model','total','input','cached','output','cost','cacheRate','interactions','account']",
+    )
+    .replace(
+      '<article class="metric"><span class="metric-label">Interactions</span><strong id="interactions" class="metric-value">0</strong><span id="interactions-detail" class="metric-detail">Usage events</span></article></div></section>',
+      '<article class="metric"><span class="metric-label">Interactions</span><strong id="interactions" class="metric-value">0</strong><span id="interactions-detail" class="metric-detail">Usage events</span></article><article class="metric"><span class="metric-label">Cost</span><strong id="cost" class="metric-value">—</strong><span id="cost-detail" class="metric-detail">Estimated USD</span></article></div></section>',
+    )
+    .replace(
+      '<th class="numeric" data-sort-key="output" aria-sort="none"><button class="sort-button" type="button">Output</button></th><th class="numeric" data-sort-key="cacheRate"',
+      '<th class="numeric" data-sort-key="output" aria-sort="none"><button class="sort-button" type="button">Output</button></th><th class="numeric" data-sort-key="cost" aria-sort="none"><button class="sort-button" type="button">Cost</button></th><th class="numeric" data-sort-key="cacheRate"',
     )
     .replace(
       "meta.append(usage,reset);item.append(head,bar,meta);",
-      "meta.append();const windows=document.createElement('div');windows.className='quota-windows';for(const [index,window] of (Array.isArray(value?.windows)&&value.windows.length?value.windows:[value]).entries()){const windowRemaining=window?.remainingPercent===null||window?.remainingPercent===undefined?null:Math.max(0,Math.min(100,Number(window.remainingPercent)));const windowUsed=windowRemaining===null?null:100-windowRemaining;const row=document.createElement('div');row.className='quota-window';const windowUsage=document.createElement('span');windowUsage.textContent=formatQuotaWindow(window,index)+': '+(windowUsed===null?'Unavailable':percent(windowUsed)+' used');const windowReset=document.createElement('span');windowReset.textContent=formatReset(window?.resetsAt);row.append(windowUsage,windowReset);windows.append(row)}const keepAlive=document.createElement('span');keepAlive.className='quota-keep-alive';keepAlive.textContent='Last Keep Alive at: '+formatKeepAlive(value?.lastKeepAliveAt);item.append(head,bar,meta,windows,keepAlive);",
+      "const windows=document.createElement('div');windows.className='quota-windows';for(const [index,window] of (Array.isArray(value?.windows)&&value.windows.length?value.windows:[value]).entries()){const windowRemaining=window?.remainingPercent===null||window?.remainingPercent===undefined?null:Math.max(0,Math.min(100,Number(window.remainingPercent)));const windowUsed=windowRemaining===null?null:100-windowRemaining;const row=document.createElement('div');row.className='quota-window';const windowUsage=document.createElement('span');windowUsage.textContent=formatQuotaWindow(window,index)+': '+(windowUsed===null?'Unavailable':percent(windowUsed)+' used');const windowReset=document.createElement('span');windowReset.textContent=formatReset(window?.resetsAt);row.append(windowUsage,windowReset);windows.append(row)}item.append(head,bar,meta,windows);",
     )
     .replace(
       "period.addEventListener('change'",
-      "refresh.addEventListener('click',()=>request('refresh'));period.addEventListener('change'",
+      "editPrices.addEventListener('click',()=>api.postMessage({type:'editPricing'}));refresh.addEventListener('click',()=>request('refresh'));period.addEventListener('change'",
     );
 }
