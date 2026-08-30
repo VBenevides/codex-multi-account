@@ -8,6 +8,14 @@
 - Test Result: PASS — lint, compile, build, changed-file formatting, and all 17 test files (17/17) pass. Repository-wide `npm run format:check` remains blocked by the pre-existing `src/usage/tokenCountParser.ts` formatting warning. Integration smoke test is blocked by DNS resolution for `update.code.visualstudio.com`.
 - Commit Hash: `5bafc9a72cc6b7b27b40efc19d8d57585de37bfc`.
 
+## Release 0.1.4 evidence
+
+- [x] Added configurable model pricing and estimated USD cost to the Usage view.
+- [x] Added cost sorting and five-hour quota-window labelling.
+- [x] Verification: `npm run check`.
+- [x] Result: PASS — lint, format check, TypeScript compile, and 18/18 tests passed.
+- [x] Implementation commit: `9de0344390af3a9c557d95ef5de501dcd8f35ac0`.
+
 Remaining unchecked items are optional large-dataset virtualization, dynamic account-column hiding/filter-value pruning, previous-period trend UI, derived average/ratio KPIs, icon polish, skeleton placeholders, and native VS Code integration.
 
 
