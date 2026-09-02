@@ -26,5 +26,5 @@ if [[ -z "$vscode_cli" ]]; then
   exit 1
 fi
 
-"$vscode_cli" --uninstall-extension vben.cma-codex-multi-account >/dev/null 2>&1 || true
+"$vscode_cli" --uninstall-extension vbenevides.cma-codex-multi-account >/dev/null 2>&1 || true
 "$vscode_cli" --install-extension "$repo_dir/$vsix" --force
